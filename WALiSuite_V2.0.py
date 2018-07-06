@@ -353,7 +353,7 @@ def MeanPreferenceIndexNoNANs(df):
 
 # ## Metric: weighted-TSALE
 
-# In[35]:
+# In[4]:
 
 
 def weighted_TSALE(dff, rootDir,mergeIntensities, combineControls=False, dropNans=False):
@@ -1614,10 +1614,16 @@ ax1.plot(range(len(x)), x, color='black')
 
 # ## Plot any given metric
 
-# In[12]:
+# In[15]:
 
 
 def plotTheMetric(df,metric,rootDir,mergeIntensities, combineControls, dropNans=False):
+    df['Sex'] = df['Sex'].apply(lambda x: x.split('-')[0])
+    df['Satiety'] = df['Satiety'].apply(lambda x: x.split('-')[0])
+    
+    ##Combine fed2, starved2 into one dataset
+    df.loc[df['Satiety'] == 'fed2', 'Satiety'] = 'fed'
+    df.loc[df['Satiety'] == 'starved2', 'Satiety'] = 'starved'
     
     ## open new folders to save the results
     
@@ -1664,7 +1670,7 @@ def plotTheMetric(df,metric,rootDir,mergeIntensities, combineControls, dropNans=
         ## if combineControls is true, then status-based df, else genotype-based.
         if combineControls == True:
 
-            df.loc[df['Light Intensity(uW/mm2)'] == ")70u" ,"Light Intensity(uW/mm2)"] = "70uW"
+            df.loc[df['Light Intensity(uW/mm2)'] == ")70u","Light Intensity(uW/mm2)"] = "70uW"
             ## make the columns to classify data points  (status-based in this case)
             df = df.assign(Status_Sex_Satiety_Intensity_Wind = pd.Series(df['Status'] + '_' + df['Sex'] + '_' +
                  df['Satiety'] + '_' + df['Light Intensity(uW/mm2)'] + '_' +
@@ -1688,32 +1694,90 @@ def plotTheMetric(df,metric,rootDir,mergeIntensities, combineControls, dropNans=
                             fig,b = dabest.plot(df, x = 'Status_Sex_Satiety_Intensity_Wind', y = metric+'_P01' ,
                                     color_col= 'Genotype', custom_palette = myPal,  float_contrast=False,                     
                                   idx = (
-                                         ('Parent_' + str(sex) + '_' + str(satietyStat) + '_14uW_' + str(windStat), 'Offspring_' + str(sex) + '_' + str(satietyStat) + '_14uW_' + str(windStat)),
+#                                          ('Parent_' + str(sex) + '_' + str(satietyStat) + '_14uW_' + str(windStat), 'Offspring_' + str(sex) + '_' + str(satietyStat) + '_14uW_' + str(windStat)),
                                          ('Parent_' + str(sex) + '_' + str(satietyStat) + '_42uW_' + str(windStat), 'Offspring_' + str(sex) + '_' + str(satietyStat) + '_42uW_' + str(windStat)),
                                          ('Parent_' + str(sex) + '_' + str(satietyStat) + '_70uW_' + str(windStat), 'Offspring_' + str(sex) + '_' + str(satietyStat) + '_70uW_'+ str(windStat)))
                                                                           )
                             savePath = rootDir + '/' + metric + '/P01/'
                             saveFileName = metricForFileName + '_P01_' + str(sex) + '_' + str(satietyStat) + '_' + str(windStat)
                             plt.savefig(savePath + saveFileName + '.svg',dpi=1000,bbox_inches='tight')
+                            
+                            ## Get the sample size
+#                             n1 = len(df[df['Status_Sex_Satiety_Intensity_Wind'] == 'Parent_' + str(sex) + '_' + str(satietyStat) + '_14uW_' + str(windStat)][metric+'_P01'])
+                            n2 = len(df[df['Status_Sex_Satiety_Intensity_Wind'] == 'Parent_' + str(sex) + '_' + str(satietyStat) + '_42uW_' + str(windStat)][metric+'_P01'])
+                            n3 = len(df[df['Status_Sex_Satiety_Intensity_Wind'] == 'Parent_' + str(sex) + '_' + str(satietyStat) + '_70uW_' + str(windStat)][metric+'_P01'])
+                            
+#                             n4 = len(df[df['Status_Sex_Satiety_Intensity_Wind'] == 'Offspring_' + str(sex) + '_' + str(satietyStat) + '_14uW_' + str(windStat)][metric+'_P01'])
+                            n5 = len(df[df['Status_Sex_Satiety_Intensity_Wind'] == 'Offspring_' + str(sex) + '_' + str(satietyStat) + '_42uW_' + str(windStat)][metric+'_P01'])
+                            n6 = len(df[df['Status_Sex_Satiety_Intensity_Wind'] == 'Offspring_' + str(sex) + '_' + str(satietyStat) + '_70uW_'+ str(windStat)][metric+'_P01'])
+                            
+#                             b['Parent_N'] = [n1,n2,n3]
+#                             b['Offspring_N'] = [n4,n5,n6]
+                            b['Parent_N'] = [n2,n3]
+                            b['Offspring_N'] = [n5,n6]
+                            
+                            ## Get the SDs
+#                             sd1 = df[df['Status_Sex_Satiety_Intensity_Wind'] == 'Parent_' + str(sex) + '_' + str(satietyStat) + '_14uW_' + str(windStat)][metric+'_P01'].std()
+                            sd2 = df[df['Status_Sex_Satiety_Intensity_Wind'] == 'Parent_' + str(sex) + '_' + str(satietyStat) + '_42uW_' + str(windStat)][metric+'_P01'].std()
+                            sd3 = df[df['Status_Sex_Satiety_Intensity_Wind'] == 'Parent_' + str(sex) + '_' + str(satietyStat) + '_70uW_' + str(windStat)][metric+'_P01'].std()
+                            
+#                             sd4 = df[df['Status_Sex_Satiety_Intensity_Wind'] == 'Offspring_' + str(sex) + '_' + str(satietyStat) + '_14uW_' + str(windStat)][metric+'_P01'].std()
+                            sd5 = df[df['Status_Sex_Satiety_Intensity_Wind'] == 'Offspring_' + str(sex) + '_' + str(satietyStat) + '_42uW_' + str(windStat)][metric+'_P01'].std()
+                            sd6 = df[df['Status_Sex_Satiety_Intensity_Wind'] == 'Offspring_' + str(sex) + '_' + str(satietyStat) + '_70uW_'+ str(windStat)][metric+'_P01'].std()
+                            
+#                             b['Parent_SD'] = [sd1,sd2,sd3]
+#                             b['Offspring_SD'] = [sd4,sd5,sd6]
+                    
+                            b['Parent_SD'] = [sd2,sd3]
+                            b['Offspring_SD'] = [sd5,sd6]
                             b.to_csv(savePath + saveFileName + '.csv')
 
                             ## close the figures to save memory
                             plt.close(fig)
                             plt.clf()
 
-                            ## P10 of the metric
+                        ## P10 of the metric
                             fig,b = dabest.plot(df, x = 'Status_Sex_Satiety_Intensity_Wind', y = metric+'_P10' ,
                                     color_col= 'Genotype', custom_palette = myPal,  float_contrast=False,                     
                                   idx = (
-                                         ('Parent_' + str(sex) + '_' + str(satietyStat) + '_14uW_' + str(windStat), 'Offspring_' + str(sex) + '_' + str(satietyStat) + '_14uW_' + str(windStat)),
+#                                          ('Parent_' + str(sex) + '_' + str(satietyStat) + '_14uW_' + str(windStat), 'Offspring_' + str(sex) + '_' + str(satietyStat) + '_14uW_' + str(windStat)),
                                          ('Parent_' + str(sex) + '_' + str(satietyStat) + '_42uW_' + str(windStat), 'Offspring_' + str(sex) + '_' + str(satietyStat) + '_42uW_' + str(windStat)),
                                          ('Parent_' + str(sex) + '_' + str(satietyStat) + '_70uW_' + str(windStat), 'Offspring_' + str(sex) + '_' + str(satietyStat) + '_70uW_'+ str(windStat)))
                                                                           )
                             savePath = rootDir + '/' + metric + '/P10/'
                             saveFileName = metricForFileName + '_P10_' + str(sex) + '_' + str(satietyStat) + '_' + str(windStat)
                             plt.savefig(savePath + saveFileName + '.svg',dpi=1000,bbox_inches='tight')
+                            
+                            ## Get the sample size
+#                             n1 = len(df[df['Status_Sex_Satiety_Intensity_Wind'] == 'Parent_' + str(sex) + '_' + str(satietyStat) + '_14uW_' + str(windStat)][metric+'_P10'])
+                            n2 = len(df[df['Status_Sex_Satiety_Intensity_Wind'] == 'Parent_' + str(sex) + '_' + str(satietyStat) + '_42uW_' + str(windStat)][metric+'_P10'])
+                            n3 = len(df[df['Status_Sex_Satiety_Intensity_Wind'] == 'Parent_' + str(sex) + '_' + str(satietyStat) + '_70uW_' + str(windStat)][metric+'_P10'])
+                            
+#                             n4 = len(df[df['Status_Sex_Satiety_Intensity_Wind'] == 'Offspring_' + str(sex) + '_' + str(satietyStat) + '_14uW_' + str(windStat)][metric+'_P10'])
+                            n5 = len(df[df['Status_Sex_Satiety_Intensity_Wind'] == 'Offspring_' + str(sex) + '_' + str(satietyStat) + '_42uW_' + str(windStat)][metric+'_P10'])
+                            n6 = len(df[df['Status_Sex_Satiety_Intensity_Wind'] == 'Offspring_' + str(sex) + '_' + str(satietyStat) + '_70uW_'+ str(windStat)][metric+'_P10'])
+                            
+#                             b['Parent_N'] = [n1,n2,n3]
+#                             b['Offspring_N'] = [n4,n5,n6]
+                            
+                            b['Parent_N'] = [n2,n3]
+                            b['Offspring_N'] = [n5,n6]
+                            ## Get the SDs
+#                             sd1 = df[df['Status_Sex_Satiety_Intensity_Wind'] == 'Parent_' + str(sex) + '_' + str(satietyStat) + '_14uW_' + str(windStat)][metric+'_P10'].std()
+                            sd2 = df[df['Status_Sex_Satiety_Intensity_Wind'] == 'Parent_' + str(sex) + '_' + str(satietyStat) + '_42uW_' + str(windStat)][metric+'_P10'].std()
+                            sd3 = df[df['Status_Sex_Satiety_Intensity_Wind'] == 'Parent_' + str(sex) + '_' + str(satietyStat) + '_70uW_' + str(windStat)][metric+'_P10'].std()
+                            
+#                             sd4 = df[df['Status_Sex_Satiety_Intensity_Wind'] == 'Offspring_' + str(sex) + '_' + str(satietyStat) + '_14uW_' + str(windStat)][metric+'_P10'].std()
+                            sd5 = df[df['Status_Sex_Satiety_Intensity_Wind'] == 'Offspring_' + str(sex) + '_' + str(satietyStat) + '_42uW_' + str(windStat)][metric+'_P10'].std()
+                            sd6 = df[df['Status_Sex_Satiety_Intensity_Wind'] == 'Offspring_' + str(sex) + '_' + str(satietyStat) + '_70uW_'+ str(windStat)][metric+'_P10'].std()
+                            
+#                             b['Parent_SD'] = [sd1,sd2,sd3]
+#                             b['Offspring_SD'] = [sd4,sd5,sd6]
+                    
+                            b['Parent_SD'] = [sd2,sd3]
+                            b['Offspring_SD'] = [sd5,sd6]
+                            
                             b.to_csv(savePath + saveFileName + '.csv')
-
                             plt.close(fig)
                             plt.clf()
 
@@ -1721,18 +1785,50 @@ def plotTheMetric(df,metric,rootDir,mergeIntensities, combineControls, dropNans=
                             fig,b = dabest.plot(df, x = 'Status_Sex_Satiety_Intensity_Wind', y = metric+'_Mean' ,
                                     color_col= 'Genotype', custom_palette = myPal, float_contrast=False,                     
                                   idx = (
-                                         ('Parent_' + str(sex) + '_' + str(satietyStat) + '_14uW_' + str(windStat), 'Offspring_' + str(sex) + '_' + str(satietyStat) + '_14uW_' + str(windStat)),
+#                                          ('Parent_' + str(sex) + '_' + str(satietyStat) + '_14uW_' + str(windStat), 'Offspring_' + str(sex) + '_' + str(satietyStat) + '_14uW_' + str(windStat)),
                                          ('Parent_' + str(sex) + '_' + str(satietyStat) + '_42uW_' + str(windStat), 'Offspring_' + str(sex) + '_' + str(satietyStat) + '_42uW_' + str(windStat)),
                                          ('Parent_' + str(sex) + '_' + str(satietyStat) + '_70uW_' + str(windStat), 'Offspring_' + str(sex) + '_' + str(satietyStat) + '_70uW_'+ str(windStat)))
                                                                           )
                             savePath = rootDir + '/' + metric + '/Mean/'
                             saveFileName = metricForFileName + '_Mean_' + str(sex) + '_' + str(satietyStat) + '_' + str(windStat)
                             plt.savefig(savePath + saveFileName + '.svg',dpi=1000,bbox_inches='tight')
+                            
+                            ## Get the sample size
+#                             n1 = len(df[df['Status_Sex_Satiety_Intensity_Wind'] == 'Parent_' + str(sex) + '_' + str(satietyStat) + '_14uW_' + str(windStat)][metric+'_Mean'])
+                            n2 = len(df[df['Status_Sex_Satiety_Intensity_Wind'] == 'Parent_' + str(sex) + '_' + str(satietyStat) + '_42uW_' + str(windStat)][metric+'_Mean'])
+                            n3 = len(df[df['Status_Sex_Satiety_Intensity_Wind'] == 'Parent_' + str(sex) + '_' + str(satietyStat) + '_70uW_' + str(windStat)][metric+'_Mean'])
+                            
+#                             n4 = len(df[df['Status_Sex_Satiety_Intensity_Wind'] == 'Offspring_' + str(sex) + '_' + str(satietyStat) + '_14uW_' + str(windStat)][metric+'_Mean'])
+                            n5 = len(df[df['Status_Sex_Satiety_Intensity_Wind'] == 'Offspring_' + str(sex) + '_' + str(satietyStat) + '_42uW_' + str(windStat)][metric+'_Mean'])
+                            n6 = len(df[df['Status_Sex_Satiety_Intensity_Wind'] == 'Offspring_' + str(sex) + '_' + str(satietyStat) + '_70uW_'+ str(windStat)][metric+'_Mean'])
+                            
+#                             b['Parent_N'] = [n1,n2,n3]
+#                             b['Offspring_N'] = [n4,n5,n6]
+                    
+                            b['Parent_N'] = [n2,n3]
+                            b['Offspring_N'] = [n5,n6]
+                            
+                            ## Get the SDs
+#                             sd1 = df[df['Status_Sex_Satiety_Intensity_Wind'] == 'Parent_' + str(sex) + '_' + str(satietyStat) + '_14uW_' + str(windStat)][metric+'_Mean'].std()
+                            sd2 = df[df['Status_Sex_Satiety_Intensity_Wind'] == 'Parent_' + str(sex) + '_' + str(satietyStat) + '_42uW_' + str(windStat)][metric+'_Mean'].std()
+                            sd3 = df[df['Status_Sex_Satiety_Intensity_Wind'] == 'Parent_' + str(sex) + '_' + str(satietyStat) + '_70uW_' + str(windStat)][metric+'_Mean'].std()
+                            
+#                             sd4 = df[df['Status_Sex_Satiety_Intensity_Wind'] == 'Offspring_' + str(sex) + '_' + str(satietyStat) + '_14uW_' + str(windStat)][metric+'_Mean'].std()
+                            sd5 = df[df['Status_Sex_Satiety_Intensity_Wind'] == 'Offspring_' + str(sex) + '_' + str(satietyStat) + '_42uW_' + str(windStat)][metric+'_Mean'].std()
+                            sd6 = df[df['Status_Sex_Satiety_Intensity_Wind'] == 'Offspring_' + str(sex) + '_' + str(satietyStat) + '_70uW_'+ str(windStat)][metric+'_Mean'].std()
+                            
+#                             b['Parent_SD'] = [sd1,sd2,sd3]
+#                             b['Offspring_SD'] = [sd4,sd5,sd6]
+                    
+                            b['Parent_SD'] = [sd2,sd3]
+                            b['Offspring_SD'] = [sd5,sd6]
+                            
                             b.to_csv(savePath + saveFileName + '.csv')
                             plt.close(fig)
                             plt.clf()
                         except:
                             print "Not available %s" % (str(sex) + '_' + str(satietyStat) + '_' + str(windStat))
+        
         elif combineControls == False:  
 
             df.loc[df['Light Intensity(uW/mm2)'] == ")70u" ,"Light Intensity(uW/mm2)"] = "70uW"
@@ -2103,7 +2199,7 @@ def plotTheMetric(df,metric,rootDir,mergeIntensities, combineControls, dropNans=
     return None
 
 
-# In[13]:
+# In[16]:
 
 
 def WALiMe(rootDirectory, mergeIntensities=False, pickORN=False,combineControls=True):
@@ -2156,28 +2252,28 @@ def WALiMe(rootDirectory, mergeIntensities=False, pickORN=False,combineControls=
             df = dataToDataframe(rootDir)
 
         ## apply the metrics
-        LaXS(df, rootDir,mergeIntensities, combineControls, dropNans=False)
-        TSALE(df, rootDir, mergeIntensities,combineControls, dropNans=False)
+#         LaXS(df, rootDir,mergeIntensities, combineControls, dropNans=False)
+#         TSALE(df, rootDir, mergeIntensities,combineControls, dropNans=False)
         weighted_TSALE(df, rootDir,mergeIntensities, combineControls, dropNans=False)
-        LAI(df, rootDir, mergeIntensities,combineControls, dropNans=False)
+#         LAI(df, rootDir, mergeIntensities,combineControls, dropNans=False)
 
-        try:
-            RPI(df, rootDir,mergeIntensities, combineControls, dropNans=False)
-        except:
-            print "Did not calculate RPI for some errors in mannwhitney stats for ORN %s" %(ORN)
+#         try:
+#             RPI(df, rootDir,mergeIntensities, combineControls, dropNans=False)
+#         except:
+#             print "Did not calculate RPI for some errors in mannwhitney stats for ORN %s" %(ORN)
 
-        DeltaPercentTimeSpent(df, rootDir,mergeIntensities, combineControls, dropNans=False)
-        Log2SpeedRatio(df, rootDir, mergeIntensities,combineControls, dropNans=False)
-        SpeedCrossingInside(df, rootDir, mergeIntensities,combineControls, dropNans=False)
-        SpeedCrossingOutside(df, rootDir,mergeIntensities, combineControls, dropNans=False)
-        NoBC(df, rootDir, mergeIntensities,combineControls, dropNans=False)
+#         DeltaPercentTimeSpent(df, rootDir,mergeIntensities, combineControls, dropNans=False)
+#         Log2SpeedRatio(df, rootDir, mergeIntensities,combineControls, dropNans=False)
+#         SpeedCrossingInside(df, rootDir, mergeIntensities,combineControls, dropNans=False)
+#         SpeedCrossingOutside(df, rootDir,mergeIntensities, combineControls, dropNans=False)
+#         NoBC(df, rootDir, mergeIntensities,combineControls, dropNans=False)
 
     return df
 
 
 # ### Execute
 
-# In[14]:
+# In[18]:
 
 
 import os
@@ -2204,15 +2300,53 @@ import progressbar
 # from svgutils.compose import *
 import dabest
 
-rootDirectory = "C:/Users/tumkayat/Desktop/ORScreening/WALiSAR_All_RawPickles/"
-d = WALiMe(rootDirectory, mergeIntensities=True, combineControls=True)
+rootDirectory = "C:/Users/tumkayat/Desktop/ORScreening/All_merged_intensity_wTSALE/Or49a/Air14_missing_separate_analysis"
+d = WALiMe(rootDirectory, mergeIntensities=False, pickORN='Or49a', combineControls=True)
 
 
-# In[27]:
+# In[89]:
 
 
-df = pd.read_pickle("C:/Users/tumkayat/Desktop/ORScreening/All_merged_intensity_wTSALE/Gr21a/RawDataFrame.pkl")
+df = pd.read_pickle("C:/Users/tumkayat/Desktop/ORScreening/All_merged_intensity_wTSALE/Or33b-Or47a/RawDataFrame.pkl")
 
+
+# In[90]:
+
+
+df = df.assign(Status_Sex_Satiety_Intensity_Wind = pd.Series(df['Status'] + '_' + df['Sex'] + '_' +
+                 df['Satiety'] + '_' + df['Light Intensity(uW/mm2)'] + '_' +
+                 df['Wind status'], index = df.index)) 
+
+
+# In[91]:
+
+
+df
+
+
+# ### Remove folders: Start
+
+# In[193]:
+
+
+rootDir = "C:/Users/tumkayat/Desktop/ORScreening/All_merged_intensity_wTSALE/"
+a = os.listdir(rootDir)
+
+
+# In[194]:
+
+
+for ORN in a:
+    ORN_folder = os.path.join(rootDir, ORN)
+    ORN_content = os.listdir(ORN_folder)
+    
+    for i in ORN_content:
+        if not i[-4:] == ".pkl":
+            shutil.rmtree(os.path.join(ORN_folder,i))
+    
+
+
+# ### Remove folders: End
 
 # In[36]:
 
@@ -2223,9 +2357,8 @@ df.to_pickle("C:/Users/tumkayat/Desktop/ORScreening/TransferToSOD/Orco_activatio
 # In[267]:
 
 
-df = df.assign(Genotype_Sex_Satiety_Intensity_Wind = pd.Series(df['Genotype'] + '_' + df['Sex'] + '_' +
-             df['Satiety'] + '_'  + df['Light Intensity(uW/mm2)'] + '_' +
-             df['Wind status'], index = df.index))
+df = df.assign(Status_Sex_Satiety_Wind = pd.Series(df['Status'] + '_' + df['Sex'] + '_' +
+             df['Satiety'] + '_' + df['Wind status'], index = df.index))
 
 
 # In[45]:
@@ -2235,55 +2368,130 @@ df = df.assign(Genotype_Sex_Satiety_Wind = pd.Series(df['Genotype'] + '_' + df['
              df['Satiety'] + '_' + df['Wind status'], index = df.index))
 
 
-# In[43]:
+# In[56]:
 
 
-df = df.assign(Genotype_Sex_Satiety_Wind = pd.Series(df['Genotype'] + '_' + df['Sex'] + '_' +
-             df['Satiety'] + '_' + df['Wind status'] + '_' + df['Light Intensity(uW/mm2)'], index = df.index))
+t = t.assign(Fly_ID_Genotype_Sex_Satiety_Wind = pd.Series(df['Fly ID'] + '_' + df['Genotype'] + '_' + df['Sex'] + '_' +
+             df['Satiety'] + '_' + df['Wind status'], index = df.index))
 
 
-# In[36]:
+# In[150]:
 
 
 t = weighted_TSALE(df, rootDir="C:/Users/tumkayat/Desktop/Del", combineControls=True, dropNans=False, mergeIntensities=True)
 
 
-# In[47]:
+# In[57]:
 
 
 t.iloc[0]
 
 
-# In[49]:
+# In[72]:
 
 
-t['Genotype_Sex_Satiety_Wind'].unique()[0]
+df.iloc[0]
 
 
-# In[53]:
+# ## Calculate and Plot Integrated Intensities
+
+# In[166]:
 
 
-t[(t['Genotype_Sex_Satiety_Wind'] == t['Genotype_Sex_Satiety_Wind'].unique()[0]) & (t['Light Intensity(uW/mm2)'] == '14uW')]['Fly ID']
+# This is by getting the absolute sum of the wTSALE values and contrasting them.
+
+def integratedIntensities(df):
+    
+    df['Sex'] = df['Sex'].apply(lambda x: x.split('-')[0])
+    ## assign Fly ID labels to select fly per condition and get 3 intensities 
+    df = df.assign(FlyID_Genotype_Sex_Satiety_Wind = pd.Series(df['Fly ID'] + '_' + df['Genotype'] + '_' + df['Sex'] + '_' +
+                 df['Satiety'] + '_' + df['Wind status'], index = df.index))
+
+    df = df.assign(Status_Sex_Satiety_Wind = pd.Series(df['Status'] + '_' + df['Sex'] + '_' +
+             df['Satiety'] + '_' + df['Wind status'], index = df.index))
+
+    ## Go thru the fly ID + conditions
+    unique_fly_list = df['FlyID_Genotype_Sex_Satiety_Wind'].unique()
+
+    temp = {'Genotype':[], 'Sex':[], 'Satiety':[], 'Wind status':[], 'Genotype_Sex_Satiety_Wind':[], 'sum_abs_wTSALE_P10':[], 'Status_Sex_Satiety_Wind':[],}
+
+    ## Get summed absolute wTSALE_P10 per fly across conditions
+    ## Write the results to a new table
+    for i in range(len(unique_fly_list)):
+        dfOI = df[(df['FlyID_Genotype_Sex_Satiety_Wind'] == df['FlyID_Genotype_Sex_Satiety_Wind'].unique()[i])]
+        sum_abs_wTSALE_P10 = dfOI['weighted_TSALE_P10'].abs().sum()
+
+        temp['sum_abs_wTSALE_P10'].append(sum_abs_wTSALE_P10)
+        temp['Genotype_Sex_Satiety_Wind'].append(unique_fly_list[i][4:])
+        temp['Status_Sex_Satiety_Wind'].append(dfOI['Status_Sex_Satiety_Wind'].iloc[0])
+        temp['Genotype'].append(dfOI['Genotype'].iloc[0])
+        temp['Sex'].append(dfOI['Sex'].iloc[0])
+        temp['Satiety'].append(dfOI['Satiety'].iloc[0])
+        temp['Wind status'].append(dfOI['Wind status'].iloc[0])
+    
+    IntegratedIntensity_df = pd.DataFrame.from_dict(temp)
+
+    return IntegratedIntensity_df
 
 
-# In[54]:
+# In[167]:
 
 
-t[(t['Genotype_Sex_Satiety_Wind'] == t['Genotype_Sex_Satiety_Wind'].unique()[0]) & (t['Light Intensity(uW/mm2)'] == '42uW')]['Fly ID']
+def IntegratedintensityPlot(df, rootDir):
+    ## define the color palette
+    if len(df['Genotype'].unique()) == 3:
+        myPal = {df['Genotype'].unique()[0] : 'lightgreen',
+                 df['Genotype'].unique()[1] : 'cyan',
+                 df['Genotype'].unique()[2]:  'red'}
+
+    listofSex = df['Sex'].unique()
+    listofSatiety = df['Satiety'].unique()
+    listofWindStat = df['Wind status'].unique()
+    listofGenotypes = df['Genotype'].unique()
+
+    ## going to generate plots for each of the combination of these three condition, i.e, male_fed__NoAir
+    for sex in listofSex:
+        for satietyStat in listofSatiety:
+            for windStat in listofWindStat:
+
+                fig,b = dabest.plot(df, x = 'Status_Sex_Satiety_Wind', y = 'sum_abs_wTSALE_P10' ,
+                                    color_col= 'Genotype', custom_palette = myPal,  float_contrast=False,                     
+                                  idx = (
+                                         ('Parent_' + str(sex) + '_' + str(satietyStat) + '_' + str(windStat), 'Offspring_' + str(sex) + '_' + str(satietyStat) + '_' + str(windStat)))
+                                                                          )
+                savePath = rootDir + '/weighted_TSALE/SummedAbsoluteWTSALE/P10/'
+                if not os.path.exists(savePath):
+                    os.makedirs(savePath)
+            
+                saveFileName = 'DeltaMean_of_SummedAbsWTSALE' + '_P10_' + str(sex) + '_' + str(satietyStat) + '_' + str(windStat)
+                plt.savefig(savePath + saveFileName + '.svg',dpi=1000,bbox_inches='tight')
+                b.to_csv(savePath + saveFileName + '.csv')
+
+                plt.close(fig)
+                plt.clf()
+    return None
 
 
-# In[24]:
+# In[168]:
 
 
-## Calculate AUC per each fly across three intensities
-from sklearn import metrics
-metrics.auc(x=[1,2,3], y=[10,10,10])
+## Go thru the ORNs to analyse and plot summed abs wTSALE
+rootDirectory = "C:/Users/tumkayat/Desktop/ORScreening/All_merged_intensity_wTSALE/"
 
+ornList = os.listdir(rootDirectory)
 
-# In[272]:
+for i in range(len(ornList)):
+    ## read the data in a df
+    ORN = ornList[i]
 
+    print '%s is in progress...' %(ORN)
 
-df['Genotype_Sex_Satiety_Wind'].unique()
+    rootDir = os.path.join(rootDirectory,ORN)
+    df = pd.read_pickle(rootDir + '/weighted_TSALE/weighted_TSALE_values.pkl')
+    
+    int_df = integratedIntensities(df)
+    IntegratedintensityPlot(int_df, rootDir)
+    
 
 
 # In[34]:
